@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "PollyEviivo": {
+    "TextMatch": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

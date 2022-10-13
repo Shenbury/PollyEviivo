@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Testing;
+using System.Net;
 using TextMatch.ControllerTests.Setup;
 
 namespace TextMatch.ControllerTests
@@ -17,24 +18,31 @@ namespace TextMatch.ControllerTests
         }
 
         [Theory]
-        [InlineData("Polly", "1, 26, 51")]
-        [InlineData("POLLY", "1, 26, 51")]
-        [InlineData("PoLlY", "1, 26, 51")]
-        [InlineData("polly", "1, 26, 51")]
-        [InlineData("ll", "3, 28, 53, 78, 82")]
-        [InlineData("Ll", "3, 28, 53, 78, 82")]
-        [InlineData("LL", "3, 28, 53, 78, 82")]
+        [InlineData("Polly", "1,26,51")]
+        [InlineData("POLLY", "1,26,51")]
+        [InlineData("PoLlY", "1,26,51")]
+        [InlineData("polly", "1,26,51")]
+        [InlineData("ll", "3,28,53,78,82")]
+        [InlineData("Ll", "3,28,53,78,82")]
+        [InlineData("LL", "3,28,53,78,82")]
         [InlineData("X", "")]
         [InlineData("x", "")]
-        public void GivenPollyController_WhenControllerIsCalledWithExistingSubtext_ThenPositionsAreReturned(string subtext, string expectedPositions)
+        public async Task GivenPollyController_WhenControllerIsCalledWithExistingSubtext_ThenPositionsAreReturned(string subtext, string expectedPositions)
         {
-            //_httpClient
+            var result = await _httpClient.GetAsync($"PositionFinder/SubTextPositionFinder?subTextInput={subtext}");
+            var response = await result.Content.ReadAsStringAsync();
+
+            result.EnsureSuccessStatusCode();
+
+            Assert.Equal(expectedPositions, response);
         }
 
         [Fact]
-        public void GivenPollyController_WhenControllerIsCalledWithSubtext_ThenNullExceptionIsThrown()
+        public async Task GivenPollyController_WhenControllerIsCalledWithSubtext_ThenNullExceptionIsThrown()
         {
+            var result = await _httpClient.GetAsync($"PositionFinder/SubTextPositionFinder?subTextInput=");
 
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
         }
     }
 }

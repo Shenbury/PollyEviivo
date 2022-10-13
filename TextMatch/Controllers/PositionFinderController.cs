@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using TextMatch.Extensions;
+using TextMatch.Services;
 
 namespace TextMatch.Controllers
 {
@@ -7,22 +9,31 @@ namespace TextMatch.Controllers
     public class PositionFinderController : ControllerBase
     {
         private readonly ILogger<PositionFinderController> _logger;
-        public const string Text = "Polly put the kettle on, polly put the kettle on, polly put the kettle on we’ll all have tea";
+        private readonly ISubstringPositionsFinderService _substringPositionsFinder;
 
-        public PositionFinderController(ILogger<PositionFinderController> logger)
+        public PositionFinderController(ILogger<PositionFinderController> logger, ISubstringPositionsFinderService substringPositionsFinder)
         {
             _logger = logger;
+            _substringPositionsFinder = substringPositionsFinder;
         }
 
-
-
-        [HttpGet(Name = "SubTextPositionFinder")]
-        public string SubTextPositionFinder(
-            [FromQuery] string subtext,
-            [FromQuery] string textInput = Text)
+        [HttpGet]
+        [Route("SubTextPositionFinder")]
+        public IActionResult SubTextPositionFinder(
+            string subTextInput,
+            string? textInput)
         {
+            _logger.LogInformation($"Received request with params {nameof(textInput)}: {textInput}, {nameof(subTextInput)}: {subTextInput}");
 
-            return "";
+            if (subTextInput == null || subTextInput.Length < 1)
+            {
+                _logger.LogError($"{nameof(subTextInput)} was null");
+                throw new ArgumentNullException("You must give a subtext input!");
+            }
+
+            IList<int>? positionsFound = _substringPositionsFinder.GetPositionsOfSubString(subTextInput, textInput);
+
+            return Ok(positionsFound.ToPositionalString());
         }
     }
 }
